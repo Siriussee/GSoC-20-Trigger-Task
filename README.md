@@ -1,11 +1,12 @@
 # Trigger Tasks Report GSoC 2020
 
-This is the technicle report of the evaluation task of the GSoC 2020 project Deep Learning Algorithms for Muon Momentum Estimation in the CMS Trigger System provided by CMS at CERN.
+This is the technical report of the evaluation task of the GSoC 2020 project Deep Learning Algorithms for Muon Momentum Estimation in the CMS Trigger System provided by CMS at CERN.
 
 In this task, I 
-1. implmented Fully Connect Network (FCN), Convolutional Neural Network (CNN, ResNet, specifally) and a simple linear regression model to predict the energy level of [given particle dataset](https://www.dropbox.com/s/c1pzdacnzhvi6pm/histos_tba.20.npz?dl=0);
-2. then reconstructed the feature of particle into a image-like 2D array and, again, fed as dataset to train ResNet;
-3. implmented and testing Message Passing Neural Network (MPNN) in a quark/gulon classifier.
+
+1. implemented Fully Connect Network (FCN), Convolutional Neural Network (CNN, ResNet, specifically) and a simple linear regression model to predict the energy level of [given particle dataset](https://www.dropbox.com/s/c1pzdacnzhvi6pm/histos_tba.20.npz?dl=0);
+2. then reconstructed the feature of particle into an image-like 2D array and, again, fed as a dataset to train ResNet;
+3. implemented and testing Message Passing Neural Network (MPNN) in a quark/gluon classifier.
 
 ## Task 1
 
@@ -13,9 +14,9 @@ In this task, I
 
 The [given dataset](https://www.dropbox.com/s/c1pzdacnzhvi6pm/histos_tba.20.npz?dl=0) contains sparse feature matrix including multiple NaN values, so I first set them to `0` and normalized the feature matrix into a `mean=0, std=1` matrix. You can find it in task1.ipynb ### Explore Dataset and Standardization.
 
-Also, the `q/pt` coloum in the `parameter` indicates the **momentum of particle**, which can be calcualte from `pt=1/(q/pt)` (since `q=+-1`). And thus I yeild the momentum of particle (as well as their classes of energy). Noteworthy, the eta and phi angle coloums are dropped.
+Also, the `q/pt` column in the `parameter` indicates the **momentum of particle**, which can be calculated from `pt=1/(q/pt)` (since `q=+-1`). And thus I yield the momentum of the particle (as well as their classes of energy). Noteworthy, the eta and phi angle columns are dropped.
 
-Meanwhile, during the exploration, I find that the dataset is extremaly unbalance - up to 97% of particle has an energy of `0-10GeV`. I upsampled the remaining 3% dataset (by dupulate them simply) and drop some of the class zero (`0-10GeV`) to control the size of the whole dataset. Finally, the whole dataset contains 4 million particles, with around 1 million in each class. You can find it in task1.ipynb ### Upsampling Biased Dataset.
+Meanwhile, during the exploration, I find that the dataset is extremely unbalanced - up to 97% of the particle has an energy of `0-10GeV`. I upsampled the remaining 3% dataset (by duplicate them simply) and drop some of the class zero (`0-10GeV`) to control the size of the whole dataset. Finally, the whole dataset contains 4 million particles, with around 1 million in each class. You can find it in task1.ipynb ### Upsampling Biased Dataset.
 
 ### Dataloader and Dataset
 
@@ -65,7 +66,7 @@ Test Loss: 1.189  | Test Acc: 51.584% (493958/957571)
 
 ### CNN
 
-I implmented a ResNet in this part.  The detail of my implmentation is shown in task1.ipynb ### CNN. The CNN contains residual block with two `3*3` conv layers. And this ResNet involves three layers with two residual block (ResNet-16). The detail information of the net is shown. Noteworthy, I reconstructed the feature array into a 2D array.
+I implemented a ResNet in this part.  The detail of my implementation is shown in task1.ipynb ### CNN. The CNN contains a residual block with two `3*3` conv layers. And this ResNet involves three layers with two residual block (ResNet-16). The detail information on the net is shown. Noteworthy, I reconstructed the feature array into a 2D array.
 
 ```
 ResNet(
@@ -144,7 +145,7 @@ device = 'cpu'
 optimizer = torch.optim.Adam(resnet.parameters(), lr=lr)
 ```
 
-The ResNet-16 classifier reached an accuracy of 86.744% in test set, with a loss at `0.349`. The train/test loss curves and the outout of the last epoch are shown.  Obviously, the net has not reached its best performance, but due to time and computational resources limitation, I did not increase the `num_epochs`.
+The ResNet-16 classifier reached an accuracy of 86.744% in the test set, with a loss at `0.349`. The train/test loss curves and the output of the last epoch are shown.  Obviously, the net has not reached its best performance, but due to time and computational resources limitation, I did not increase the `num_epochs`.
 
 ```
 Epoch: 9
@@ -170,7 +171,7 @@ Its hyperparameter is exactly the same as the ResNet classifier. However, it fai
 
 ## Task 2
 
-I mainly reconstructed the feature in task 2. As I stated above, I reshape the feature into a 2D array to feed the ResNet16. And I move further here by constructing it into a `1*32*32` one channel image by reshaping and padding.
+I mainly reconstructed the feature in task 2. As I stated above, I reshape the feature into a 2D array to feed the ResNet16. And I move further hereby constructing it into a `1*32*32` one channel image by reshaping and padding.
 
 ```
 img_like_feature = np.pad(np.reshape(b, (10,10)), (11, 11), 'reflect') # from [87*1] to [32*32]
@@ -191,7 +192,7 @@ device = 'cpu'
 optimizer = torch.optim.Adam(resnet.parameters(), lr=lr)
 ```
 
-Pitfully, I do not have enough RAM to fine tune this model at a considerable epoch number, but it has the same trend as the ResNEt-16 in task 1.
+Pitifully, I do not have enough RAM to fine-tune this model at a considerable epoch number, but it has the same trend as the ResNet-16 in task 1.
 
 ```
 Epoch: 0
@@ -205,15 +206,15 @@ Test Loss: 0.670  | Test Acc: 70.886% (678782/957571)
 
 ## Task3
 
-In this section, I build graph by hand-craft feature and KNN algorithm, and feed the graph dataset to the MPNN-based Quark/Gluon jet classifier.
+In this section, I build the graph by hand-craft feature and KNN algorithm and feed the graph dataset to the MPNN-based Quark/Gluon jet classifier.
 
 ### Hand-crafted Feature and KNN-based Graph Construction
 
-The full jet dataset is giant and I cannot afford such an amount of RAM, so I only take the fitst file (100,000 jets) as my dataset. 
+The full jet dataset is giant and I cannot afford such an amount of RAM, so I only take the first file (100,000 jets) as my dataset. 
 
-I notice that there are 14 type of `pdgid` in total and each jet no jets share the same number and type of `pdgid`. So, I calculate the type and number of `pdgid` of each jet (as a `14*1` array) and set them as a part of the feature of jet. Then I notice that the average pt is also a siginificant metric to tell the type of jet, and thus the average pt is taken into account. The hand-crafted feature is constructed by `[average_pt, pdgid_type_and_number_list]` (`15*1` array).
+I notice that there are 14 type of `pdgid` in total and each jet no jets share the same number and type of `pdgid`. So, I calculate the type and number of `pdgid` of each jet (as a `14*1` array) and set them as a part of the feature of the jet. Then I notice that the average pt is also a significant metric to tell the type of jet, and thus the average pt is taken into account. The hand-crafted feature is constructed by `[average_pt, pdgid_type_and_number_list]` (`15*1` array).
 
-Then, I applied KNN algorithm to tell which K jets share the greatest similarity with each other.  The following `[100000*5]` list shows the neibours of each ject.
+Then, I applied the KNN algorithm to tell which K jets share the greatest similarity with each other.  The following `[100000*5]` list shows the neighbors of each jet.
 
 ```
 [[    0 17064 70444 11236 28423]
