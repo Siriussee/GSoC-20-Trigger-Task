@@ -166,7 +166,7 @@ model = nn.Linear(87, 1)
 
 Its hyperparameter is exactly the same as the ResNet classifier. However, it failed to obtain any feature by regressing directly from `pt`. Its loss curves are shown. The loss is calculated by `MSE loss`.
 
-![fcn1](asserts/regress.png)
+![fcn1](asserts/regress-train.png)
 
 ## Task 2
 
